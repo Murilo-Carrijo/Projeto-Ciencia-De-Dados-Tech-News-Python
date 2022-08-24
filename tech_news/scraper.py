@@ -1,6 +1,7 @@
 import requests
 import time
 import parsel
+from tech_news.database import create_news
 
 
 # Requisito 1
@@ -52,19 +53,22 @@ def scrape_noticia(html_content):
     dict_news["tags"] = selector.css(".post-tags ul li a::text").getall()
     dict_news["category"] = selector.css(".label::text").get()
 
-    # news = {
-    #     "url": url,
-    #     "title": title.strip(),
-    #     "timestamp": timestamp,
-    #     "writer": writer,
-    #     "comments_count": comments_count,
-    #     "summary": summary.strip(),
-    #     "tags": tags,
-    #     "category": category,
-    # }
     return dict_news
 
 
 # Requisito 5
 def get_tech_news(amount):
-    """Seu código deve vir aqui"""
+    url = 'https://blog.betrybe.com/'
+    news_links = []
+    dict_news = []
+
+    while len(news_links) < amount:
+        for link in scrape_novidades(fetch(url)):
+            news_links.append(link)
+        url = scrape_next_page_link(fetch(url))
+
+    for link in news_links[:amount]:
+        dict_news.append(scrape_noticia(fetch(link)))
+
+    create_news(dict_news)
+    return dict_news
